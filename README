@@ -1,0 +1,63 @@
+README: Creating locally filtered terrain data set for WRF
+
+Author: Branko Kosovic, NCAR, 2020-09-30
+
+IMPORTATN: To run the python script one needs to use python v3.
+
+The process of creating a locally filtered terrain variable and including it
+in the netCDF file that will be used to create an input file for WRF 
+proceeds as follows:
+           high-resolution data  ->  filtered data   ->   locally filtered data 
+             geo_em.d01.nc                                   geo_em_YYY.d01.nc 
+variables:       hgt                      fhgt                  hgtnew
+
+                    hgtnew = (1-w)*hgt + w*fhgt 
+
+Here, w is the (sigmoid) weighting function.
+
+The process of creating a blended data set consists of downloading USGS
+terrain data at the highest desirable resolution for the region that 
+is larger than the outer parent WRF domain, d01, and then proceeds as follows:
+
+1. Create geo_em.d01.nc data set. The terrain resolution in this data set 
+must be the same or higher than the one that is needed for simulations.
+
+2. Run geo_slope.py by issuing the following command and passing two optional 
+arguments:
+% python geo_slope.py <YYY> <Z>
+Here, YYY is an integer between 100 and 1000 and Z is either 0 or 1.
+Argument YYY determines the filter width in meters, while argument Z determines whether auxiliary output files will be created or not.
+
+Notice that if Z=1 then in addition to geo_em_YYY.d01.nc file
+additional nine diagnostic netCDF files will be created with names that should 
+be self explanatory: 
+hgt_terrain.nc          - terrain heights in the original file geo_em.d01.nc
+hgt_slope.nc            - slopes in the original file geo_em.d01.nc
+hgt_filtered_terrain.nc - terrain heights in the original file geo_em.d01.nc
+hgt_filtered_slope.nc   - slopes in the filtered geo_em.d01.nc
+hgt_locally_filtered_terrain.nc - includes the new locally filtered height 
+hgt_locally_filtered_slop.nc    - includes the new locally filtered slope
+hgt_terrain_difference.nc       - differences in terrain heights between the 
+                              original and locally filtered height
+hgt_slope_difference.nc         - differences in slopes between the 
+                              original and locally filtered slope
+hgt_weight.nc                   - weight function used in blending the original 
+                              terrain height and filtered terrain height
+One can inspect these files to see the effect of blending the original 
+geo_em.d01.nc file with the filtered geo_em.d01.nc file resulting in 
+the locally filtered geo_em_YYY.d01.nc file.
+
+3. If one needs to modify the resolution of a domain file that is smaller than 
+that covered by geo_em_YYY_d01.nc then one can use the python script 
+geo.py to modify previously prepared orig1_geo_em.d02.nc data set by 
+injecting (and interpolating if needed) high resolution terrain data 
+from geo_em_YYY.d01.nc and creating geo_em.d02.nc data with desired
+resolution including local filtering.
+To execute this script issue the following command:
+  % geo_interpolate.py YYY Z
+  where YYY is thee number defining the resolution of geo_em1_YYY.d01.nc file 
+  and Z defines the type of interpolation:
+   Z = 1 - bilinear interpolation using a rectangle with i,j to i+1,j+1 corners 
+   Z = 2 - nearest neighbor
+   Z = 3 - bilinear interpolation using a rectangle with i,j to i+2,j+2 corners 
+   Z = 4 - average height using 3x3 gird
