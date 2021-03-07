@@ -22,9 +22,9 @@ is larger than the outer parent WRF domain, d01, and then proceeds as follows:
 1. Create geo_em.d01.nc data set. The terrain resolution in this data set 
 must be the same or higher than the one that is needed for simulations.
 
-2. Run geo_slope.py by issuing the following command and passing two optional 
+2. Run geo_localfilter.py by issuing the following command and passing two optional 
 arguments:
-% python geo_slope.py <YYY> <Z>
+% python geo_localfilter.py <YYY> <Z>
 Here, YYY is an integer between 100 and 1000 and Z is either 0 or 1.
 Argument YYY determines the filter width in meters, while argument Z determines whether auxiliary output files will be created or not.
 
